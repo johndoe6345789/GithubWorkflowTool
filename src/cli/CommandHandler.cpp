@@ -239,13 +239,12 @@ int CommandHandler::handleDoctor(const QStringList& args) {
             
             // Check for job dependencies
             bool hasValidDeps = true;
-            for (auto it = workflow.jobs.begin(); it != workflow.jobs.end(); ++it) {
-                const WorkflowJob& job = it.value();
+            for (const auto& [jobId, job] : workflow.jobs.asKeyValueRange()) {
                 if (!job.needs.isEmpty()) {
                     for (const QString& dep : job.needs) {
                         if (!workflow.jobs.contains(dep)) {
                             hasValidDeps = false;
-                            out << "✗ Error: Job '" << job.id << "' depends on non-existent job '" << dep << "'" << Qt::endl;
+                            out << "✗ Error: Job '" << jobId << "' depends on non-existent job '" << dep << "'" << Qt::endl;
                             errors++;
                             issues++;
                         }
@@ -255,8 +254,8 @@ int CommandHandler::handleDoctor(const QStringList& args) {
             
             if (hasValidDeps && workflow.jobs.size() > 1) {
                 bool hasDeps = false;
-                for (auto it = workflow.jobs.begin(); it != workflow.jobs.end(); ++it) {
-                    if (!it.value().needs.isEmpty()) {
+                for (const auto& [jobId, job] : workflow.jobs.asKeyValueRange()) {
+                    if (!job.needs.isEmpty()) {
                         hasDeps = true;
                         break;
                     }
