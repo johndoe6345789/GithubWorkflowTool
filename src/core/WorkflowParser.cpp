@@ -118,8 +118,25 @@ Workflow WorkflowParser::parse(const QString& filePath) {
                 if (jobNode["strategy"]) {
                     YAML::Node strategyNode = jobNode["strategy"];
                     if (strategyNode["matrix"]) {
-                        // Store as QVariantMap for processing by MatrixStrategy
-                        job.strategy["matrix"] = "present";
+                        YAML::Node matrixNode = strategyNode["matrix"];
+                        QVariantMap matrixMap;
+                        
+                        for (auto it = matrixNode.begin(); it != matrixNode.end(); ++it) {
+                            QString key = QString::fromStdString(it->first.as<std::string>());
+                            YAML::Node valueNode = it->second;
+                            
+                            if (valueNode.IsSequence()) {
+                                QVariantList values;
+                                for (size_t i = 0; i < valueNode.size(); ++i) {
+                                    values << QString::fromStdString(valueNode[i].as<std::string>());
+                                }
+                                matrixMap[key] = values;
+                            } else {
+                                matrixMap[key] = QString::fromStdString(valueNode.as<std::string>());
+                            }
+                        }
+                        
+                        job.strategy["matrix"] = matrixMap;
                     }
                 }
                 

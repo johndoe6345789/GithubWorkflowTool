@@ -26,11 +26,14 @@ bool ContainerBackend::executeStep(const core::WorkflowStep& step,
     if (!step.run.isEmpty()) {
         QProcess process;
         QStringList args;
-        args << "exec" << m_containerId << "sh" << "-c" << step.run;
+        
+        // Use specified shell or default to sh
+        QString shell = step.shell.isEmpty() ? "sh" : step.shell;
+        args << "exec" << m_containerId << shell << "-c" << step.run;
         
         process.start(m_containerRuntime, args);
         
-        if (!process.waitForFinished(300000)) { // 5 minutes
+        if (!process.waitForFinished(STEP_TIMEOUT_MS)) {
             emit error("Step execution timeout");
             return false;
         }
@@ -61,7 +64,7 @@ bool ContainerBackend::prepareEnvironment(const QString& runsOn) {
     
     process.start(m_containerRuntime, args);
     
-    if (!process.waitForFinished(60000)) {
+    if (!process.waitForFinished(PREPARE_TIMEOUT_MS)) {
         emit error("Container creation timeout");
         return false;
     }
@@ -83,7 +86,7 @@ void ContainerBackend::cleanup() {
         args << "rm" << "-f" << m_containerId;
         
         process.start(m_containerRuntime, args);
-        process.waitForFinished(30000);
+        process.waitForFinished(CLEANUP_TIMEOUT_MS);
         
         m_containerId.clear();
     }

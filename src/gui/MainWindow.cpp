@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , m_repoManager(std::make_unique<core::RepoManager>())
     , m_executor(std::make_unique<core::JobExecutor>())
+    , m_parser(std::make_unique<core::WorkflowParser>())
 {
     setupUI();
     loadRepositories();
@@ -164,12 +165,11 @@ void MainWindow::onRunWorkflow() {
     m_outputView->append("\n=== Running workflow: " + workflowPath + " ===\n");
     
     // Parse and execute
-    core::WorkflowParser parser;
-    core::Workflow workflow = parser.parse(workflowPath);
+    core::Workflow workflow = m_parser->parse(workflowPath);
     
-    if (parser.hasErrors()) {
+    if (m_parser->hasErrors()) {
         m_outputView->append("Parsing errors:");
-        for (const QString& error : parser.getErrors()) {
+        for (const QString& error : m_parser->getErrors()) {
             m_outputView->append("  " + error);
         }
         return;

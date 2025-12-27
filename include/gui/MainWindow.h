@@ -46,6 +46,7 @@ private:
 
     std::unique_ptr<core::RepoManager> m_repoManager;
     std::unique_ptr<core::JobExecutor> m_executor;
+    std::unique_ptr<core::WorkflowParser> m_parser;
 };
 
 } // namespace gui

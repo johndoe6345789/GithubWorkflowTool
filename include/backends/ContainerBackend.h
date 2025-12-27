@@ -23,6 +23,10 @@ public:
     void cleanup() override;
 
 private:
+    static constexpr int STEP_TIMEOUT_MS = 300000;  // 5 minutes
+    static constexpr int PREPARE_TIMEOUT_MS = 60000; // 1 minute
+    static constexpr int CLEANUP_TIMEOUT_MS = 30000; // 30 seconds
+    
     QString m_containerId;
     QString m_containerRuntime;  // "docker" or "podman"
     

@@ -1,5 +1,6 @@
 #include "core/MatrixStrategy.h"
 #include "core/WorkflowParser.h"
+#include <QMetaType>
 #include <QDebug>
 
 namespace gwt {
@@ -66,7 +67,7 @@ QList<QVariantMap> MatrixStrategy::generateCombinations(const QVariantMap& matri
     
     for (const QString& key : keys) {
         QVariant value = matrix[key];
-        if (value.type() == QVariant::List) {
+        if (value.typeId() == QMetaType::QVariantList) {
             valueLists << value.toList();
         } else {
             valueLists << QVariantList{value};
