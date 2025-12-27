@@ -2,6 +2,7 @@
 #include "core/StorageProvider.h"
 #include <QProcess>
 #include <QDir>
+#include <QFileInfo>
 #include <QDebug>
 
 namespace gwt {

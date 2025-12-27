@@ -11,6 +11,7 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QLabel>
+#include <QFileInfo>
 
 namespace gwt {
 namespace gui {

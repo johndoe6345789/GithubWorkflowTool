@@ -2,6 +2,8 @@
 #include <QStandardPaths>
 #include <QCryptographicHash>
 #include <QUrl>
+#include <QDir>
+#include <QFileInfo>
 #include <QDebug>
 
 namespace gwt {

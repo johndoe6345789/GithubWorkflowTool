@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build and Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        build_type: [Debug, Release]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install Conan
+        run: pip install conan
+      
+      - name: Configure Conan
+        run: conan profile detect --force
+      
+      - name: Install Dependencies
+        run: conan install . --output-folder=build --build=missing -s build_type=${{ matrix.build_type }}
+      
+      - name: Configure CMake
+        run: cmake --preset=${{ matrix.build_type == 'Debug' && 'debug' || 'default' }}
+      
+      - name: Build
+        run: cmake --build build${{ matrix.build_type == 'Debug' && '-debug' || '' }}
