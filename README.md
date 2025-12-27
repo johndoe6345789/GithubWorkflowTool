@@ -46,6 +46,9 @@ conan install . --output-folder=build --build=missing
 cmake --preset=default
 cmake --build build
 
+# Check system compatibility
+./build/gwt doctor
+
 # Run CLI
 ./build/gwt clone https://github.com/user/repo
 ./build/gwt workflows /path/to/repo
