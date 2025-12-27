@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QProcess>
 #include <QFile>
+#include <QFileInfo>
 
 namespace gwt {
 namespace cli {
@@ -238,17 +239,11 @@ int CommandHandler::handleDoctor(const QStringList& args) {
             
             // Check for job dependencies
             bool hasValidDeps = true;
-            for (const auto& job : workflow.jobs) {
+            for (auto it = workflow.jobs.begin(); it != workflow.jobs.end(); ++it) {
+                const WorkflowJob& job = it.value();
                 if (!job.needs.isEmpty()) {
                     for (const QString& dep : job.needs) {
-                        bool found = false;
-                        for (const auto& otherJob : workflow.jobs) {
-                            if (otherJob.id == dep) {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (!found) {
+                        if (!workflow.jobs.contains(dep)) {
                             hasValidDeps = false;
                             out << "✗ Error: Job '" << job.id << "' depends on non-existent job '" << dep << "'" << Qt::endl;
                             errors++;
@@ -260,8 +255,8 @@ int CommandHandler::handleDoctor(const QStringList& args) {
             
             if (hasValidDeps && workflow.jobs.size() > 1) {
                 bool hasDeps = false;
-                for (const auto& job : workflow.jobs) {
-                    if (!job.needs.isEmpty()) {
+                for (auto it = workflow.jobs.begin(); it != workflow.jobs.end(); ++it) {
+                    if (!it.value().needs.isEmpty()) {
                         hasDeps = true;
                         break;
                     }
