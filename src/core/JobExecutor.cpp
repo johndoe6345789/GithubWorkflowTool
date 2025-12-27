@@ -2,6 +2,9 @@
 #include "backends/ContainerBackend.h"
 #include "backends/QemuBackend.h"
 #include <QDebug>
+#include <QMap>
+#include <QSet>
+#include <QStringList>
 
 namespace gwt {
 namespace core {
@@ -37,24 +40,96 @@ bool JobExecutor::executeWorkflow(const Workflow& workflow,
         emit stepOutput("", "", text);
     });
     
-    // Resolve job execution order
-    QStringList jobOrder = resolveJobOrder(workflow);
-    
-    bool success = true;
-    for (const QString& jobId : jobOrder) {
-        const WorkflowJob& job = workflow.jobs[jobId];
-        
-        emit jobStarted(jobId);
-        
-        if (!executeJob(job)) {
-            success = false;
-            emit jobFinished(jobId, false);
-            break;
+    // Build dependency graph for gated execution
+    QMap<QString, QStringList> dependencies;
+    QMap<QString, QStringList> dependents;
+    QStringList readyQueue;
+    QSet<QString> queued;
+
+    for (auto it = workflow.jobs.begin(); it != workflow.jobs.end(); ++it) {
+        const QString& jobId = it.key();
+        const QStringList& needs = it.value().needs;
+        dependencies[jobId] = needs;
+
+        if (needs.isEmpty()) {
+            readyQueue << jobId;
+            queued.insert(jobId);
         }
-        
-        emit jobFinished(jobId, true);
+
+        for (const QString& dep : needs) {
+            dependents[dep] << jobId;
+        }
     }
-    
+
+    if (readyQueue.isEmpty()) {
+        emit error("No runnable jobs found. Check for circular or missing dependencies.");
+        m_running = false;
+        return false;
+    }
+
+    QSet<QString> processed;
+    QSet<QString> failed;
+    bool success = true;
+
+    while (!readyQueue.isEmpty()) {
+        QString jobId = readyQueue.takeFirst();
+        queued.remove(jobId);
+
+        const WorkflowJob& job = workflow.jobs[jobId];
+
+        emit jobStarted(jobId);
+
+        bool jobSuccess = executeJob(job);
+        emit jobFinished(jobId, jobSuccess);
+
+        processed.insert(jobId);
+        if (!jobSuccess) {
+            failed.insert(jobId);
+            success = false;
+        }
+
+        // Evaluate dependents and gate execution based on dependency outcomes
+        for (const QString& dependentId : dependents[jobId]) {
+            if (processed.contains(dependentId) || queued.contains(dependentId)) {
+                continue;
+            }
+
+            const QStringList& needs = dependencies[dependentId];
+
+            bool depsProcessed = true;
+            bool depsFailed = false;
+            for (const QString& dep : needs) {
+                if (!processed.contains(dep)) {
+                    depsProcessed = false;
+                    break;
+                }
+                if (failed.contains(dep)) {
+                    depsFailed = true;
+                }
+            }
+
+            if (!depsProcessed) {
+                continue;
+            }
+
+            if (depsFailed) {
+                emit error(QStringLiteral("Skipping %1 because a dependency failed").arg(dependentId));
+                emit jobFinished(dependentId, false);
+                processed.insert(dependentId);
+                failed.insert(dependentId);
+                success = false;
+            } else {
+                readyQueue << dependentId;
+                queued.insert(dependentId);
+            }
+        }
+    }
+
+    if (processed.size() != workflow.jobs.size()) {
+        emit error("Workflow contains unresolved dependencies or cycles");
+        success = false;
+    }
+
     m_running = false;
     emit executionFinished(success);
     
@@ -78,66 +153,24 @@ bool JobExecutor::executeJob(const WorkflowJob& job) {
         emit error("Failed to prepare environment for: " + job.runsOn);
         return false;
     }
-    
+
     // Execute steps
     for (const WorkflowStep& step : job.steps) {
         emit stepStarted(job.id, step.name);
-        
+
         QVariantMap context;
         context["env"] = job.env;
         context["workingDirectory"] = step.workingDirectory;
-        
+
         if (!m_backend->executeStep(step, context)) {
             emit stepFinished(job.id, step.name, false);
             return false;
         }
-        
+
         emit stepFinished(job.id, step.name, true);
     }
-    
-    return true;
-}
 
-QStringList JobExecutor::resolveJobOrder(const Workflow& workflow) const {
-    QStringList order;
-    QSet<QString> processed;
-    QMap<QString, QStringList> dependencies;
-    
-    // Build dependency map
-    for (auto it = workflow.jobs.begin(); it != workflow.jobs.end(); ++it) {
-        dependencies[it.key()] = it.value().needs;
-    }
-    
-    // Simple topological sort
-    bool changed = true;
-    while (changed && processed.size() < workflow.jobs.size()) {
-        changed = false;
-        
-        for (auto it = workflow.jobs.begin(); it != workflow.jobs.end(); ++it) {
-            QString jobId = it.key();
-            
-            if (processed.contains(jobId)) {
-                continue;
-            }
-            
-            // Check if all dependencies are satisfied
-            bool canRun = true;
-            for (const QString& dep : dependencies[jobId]) {
-                if (!processed.contains(dep)) {
-                    canRun = false;
-                    break;
-                }
-            }
-            
-            if (canRun) {
-                order << jobId;
-                processed.insert(jobId);
-                changed = true;
-            }
-        }
-    }
-    
-    return order;
+    return true;
 }
 
 } // namespace core

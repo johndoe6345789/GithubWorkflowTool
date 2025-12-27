@@ -97,7 +97,7 @@ GithubWorkflowTool is a C++/Qt6 desktop application that simulates GitHub Action
 #### JobExecutor
 - **Purpose**: Orchestrate workflow execution
 - **Key Features**:
-  - Topological sort for job dependencies
+  - Gated dependency tree that skips blocked branches while continuing independent jobs
   - Backend selection (Container/QEMU)
   - Real-time progress reporting
   - Error handling and recovery
@@ -201,9 +201,9 @@ GithubWorkflowTool is a C++/Qt6 desktop application that simulates GitHub Action
    ↓
 4. MatrixStrategy expands matrix jobs
    ↓
-5. JobExecutor resolves job dependencies
+5. JobExecutor resolves job dependencies as a gated tree
    ↓
-6. For each job in order:
+6. For each ready job (while skipping branches with failed needs):
    a. Select backend (Container/QEMU)
    b. Backend prepares environment
    c. For each step:
