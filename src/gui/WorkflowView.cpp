@@ -20,8 +20,12 @@ void WorkflowView::setupUI() {
 }
 
 void WorkflowView::loadWorkflow(const QString& workflowPath) {
+    // TODO: Implement detailed workflow visualization
+    // - Show workflow name and triggers
+    // - Display job graph with dependencies
+    // - Show step details
+    // - Highlight matrix expansions
     Q_UNUSED(workflowPath);
-    // Implementation for detailed workflow view
 }
 
 } // namespace gui

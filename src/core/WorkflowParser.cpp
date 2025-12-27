@@ -145,7 +145,7 @@ Workflow WorkflowParser::parse(const QString& filePath) {
         }
         
     } catch (const YAML::Exception& e) {
-        m_errors << QString("YAML parsing error: %1").arg(e.what());
+        m_errors << QString("YAML parsing error in %1: %2").arg(filePath, e.what());
     }
     
     return workflow;

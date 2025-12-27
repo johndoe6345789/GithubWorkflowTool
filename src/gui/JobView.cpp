@@ -20,9 +20,13 @@ void JobView::setupUI() {
 }
 
 void JobView::setJobInfo(const QString& jobId, const QString& status) {
+    // TODO: Implement job details display
+    // - Show job ID and name
+    // - Display job status with color coding
+    // - Show step progress
+    // - Display logs for individual steps
     Q_UNUSED(jobId);
     Q_UNUSED(status);
-    // Implementation for job details
 }
 
 } // namespace gui

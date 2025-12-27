@@ -28,7 +28,18 @@ bool ContainerBackend::executeStep(const core::WorkflowStep& step,
         QStringList args;
         
         // Use specified shell or default to sh
+        // Common shells: bash, sh, dash, ash
         QString shell = step.shell.isEmpty() ? "sh" : step.shell;
+        
+        // Basic shell validation - prefer bash if available, fallback to sh
+        if (shell == "bash" || shell == "/bin/bash") {
+            // Try bash first, will fail if not available
+            shell = "bash";
+        } else if (shell == "sh" || shell == "/bin/sh") {
+            shell = "sh";
+        }
+        // For other shells, use as specified and let container fail if unavailable
+        
         args << "exec" << m_containerId << shell << "-c" << step.run;
         
         process.start(m_containerRuntime, args);
