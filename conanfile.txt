@@ -1,0 +1,17 @@
+[requires]
+qt/6.6.1
+yaml-cpp/0.8.0
+
+[generators]
+CMakeToolchain
+CMakeDeps
+
+[options]
+qt/*:shared=True
+qt/*:qttools=True
+qt/*:qtdeclarative=False
+qt/*:qtquickcontrols2=False
+yaml-cpp/*:shared=False
+
+[layout]
+cmake_layout
