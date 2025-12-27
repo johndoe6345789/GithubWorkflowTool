@@ -60,11 +60,6 @@ private:
      * @brief Execute a single job
      */
     bool executeJob(const WorkflowJob& job);
-    
-    /**
-     * @brief Resolve job dependencies (needs)
-     */
-    QStringList resolveJobOrder(const Workflow& workflow) const;
 };
 
 } // namespace core
