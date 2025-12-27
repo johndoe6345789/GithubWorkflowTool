@@ -64,6 +64,25 @@ gwt list
 gwt workflows /path/to/repo
 ```
 
+#### Check System and Workflow Compatibility
+```bash
+# Check system backends (Docker, Podman, QEMU)
+gwt doctor
+
+# Check specific workflow for compatibility issues
+gwt doctor /path/to/repo/.github/workflows/ci.yml
+```
+
+The `doctor` command diagnoses:
+- Backend availability (Docker, Podman, QEMU)
+- Workflow parsing errors
+- Unsupported features (service containers, reusable workflows, etc.)
+- macOS runner usage
+- Advanced expression usage
+- Job dependency issues
+
+**Always run `gwt doctor` before executing workflows to identify potential issues early.**
+
 #### Run a Workflow
 ```bash
 gwt run /path/to/repo /path/to/repo/.github/workflows/ci.yml
@@ -260,6 +279,15 @@ jobs:
 Jobs run in order: build → test → deploy
 
 ## Troubleshooting
+
+### Quick Diagnostics
+
+**Before troubleshooting, always run:**
+```bash
+gwt doctor /path/to/workflow.yml
+```
+
+This will identify most common issues and suggest workarounds.
 
 ### Container Backend Issues
 

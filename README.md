@@ -102,11 +102,17 @@ GithubWorkflowTool/
 
 ## Limitations (v1)
 
-- Not all GitHub Actions features are supported
-- Some third-party actions may require container mode or preinstalled tools
-- Service containers not yet implemented
-- macOS runner images not supported
-- Network access in runners may be limited
+GithubWorkflowTool v1 has intentional limitations to ensure deterministic, debuggable local execution:
+
+- Not all GitHub Actions features are supported (see [LIMITATIONS.md](LIMITATIONS.md) §3.1)
+- Some third-party actions may require container mode or preinstalled tools (§3.2)
+- Service containers not yet implemented (§3.3)
+- macOS runner images not supported (§3.4)
+- Network access in runners may be limited (§3.5)
+
+**Before running workflows locally**, use `gwt doctor` to check compatibility and get actionable guidance.
+
+For detailed information, workarounds, and resolution roadmap, see **[LIMITATIONS.md](LIMITATIONS.md)**.
 
 ## License
 

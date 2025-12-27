@@ -38,6 +38,7 @@ private:
     int handleList(const QStringList& args);
     int handleRun(const QStringList& args);
     int handleWorkflows(const QStringList& args);
+    int handleDoctor(const QStringList& args);
 };
 
 } // namespace cli

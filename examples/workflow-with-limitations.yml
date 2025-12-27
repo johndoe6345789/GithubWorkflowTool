@@ -1,0 +1,75 @@
+name: Example Workflow with Known Limitations
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+# This workflow demonstrates various features that have limitations in v1
+
+jobs:
+  # This job uses service containers (not supported in v1)
+  database-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run tests with database
+        run: |
+          echo "This would test with PostgreSQL"
+          echo "Not supported in v1 - see LIMITATIONS.md §3.3"
+
+  # This job uses advanced expressions (limited support in v1)
+  advanced-expressions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use hashFiles
+        run: echo "${{ hashFiles('**/*.go') }}"
+      - name: Use fromJSON
+        run: echo "${{ fromJSON('{"key": "value"}').key }}"
+
+  # This job targets macOS (not supported in v1)
+  macos-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build on macOS
+        run: |
+          echo "macOS runners not supported in v1"
+          echo "See LIMITATIONS.md §3.4"
+
+  # This job demonstrates concurrency (not enforced in v1)
+  concurrent-job:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Run concurrent job
+        run: |
+          echo "Concurrency groups not enforced in v1"
+          echo "See LIMITATIONS.md §3.1"
+
+  # This is a valid job that should work in v1
+  simple-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run simple test
+        run: echo "This job should work fine in v1"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: results/
